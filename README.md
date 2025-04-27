@@ -1,2 +1,2 @@
 # TugasAkhir2
-Software Aplikasi saja
+Hardware Controller saja
