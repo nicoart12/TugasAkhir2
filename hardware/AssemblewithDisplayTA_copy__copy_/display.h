@@ -3,8 +3,9 @@
 
 void sendDataD(String dataSend) {
     digitalWrite(Enable, HIGH);
+    SerialPort.print(1);
     Serial.println("******\n");
-    Serial.print("Data send: ");
+    Serial.print("Data send Display: ");
     Serial.println(dataSend);
     Serial.println("******\n");
     SerialPort.print(dataSend);
@@ -14,7 +15,8 @@ void sendDataD(String dataSend) {
 
 void receiveDataD(bool receiveFlag){
   if (receiveFlag) {
-      digitalWrite(Enable, LOW);
+      dataReceive = SerialPort.readString();
+      //digitalWrite(Enable, LOW);
       Serial.println("******\n");
       Serial.printf("Data received: %s\n", dataReceive );
       Serial.println("******\n");

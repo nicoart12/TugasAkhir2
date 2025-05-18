@@ -27,6 +27,20 @@ bool srinseFlag;
 bool frinseFlag;
 bool receiveFlag; 
 
+bool errorNameFlag;
+bool errorSetpointFlag;
+bool errorVolumeFlag;
+bool errorPouringFlag;
+bool errorIntervalFlag;
+
+
+//untuk update temp
+uint32_t time_read_temp = 0;
+int currentIndex = 0;
+float temp_raw[numReadings];
+float temp_avg = 0;
+//const int numReadings = 20; //jumlah data yang dibaca
+
 int totalVolume = 0;
 int numSteps = 0;
 
@@ -34,7 +48,17 @@ int countwater = 0;
 int countbrew = 0;
 int countwait = 0;
 
-double Setpoint = 0, NilaiSuhu = 0, Output = 0;
+//untuk counter step
+int countStep = 0;
+
+int blockvolume = 220;
+
+double Setpoint = 0;
+double NilaiSuhu = 0;
+
+//UNTUK CONTROL MOTOR
+bool lessSpeed;
+int pourIntervalLess;
 
 String namaResep; 
 int pouringVolumes[10] = {0};
@@ -70,12 +94,10 @@ int previousheatingmillis = 0;
 int currentheatingmillis = 0;
 int total_time = 0;
 
-double Kp = 1.0, Ki = 0.5, Kd = 0.1;
 
 dimmerLamp dimmer(outputPin, zerocross);
 
 MAX6675 thermocouple(thermoCLK, thermoCS, thermoSO);
 
-PID myPID(&NilaiSuhu, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 
 HX711_ADC LoadCell(HX711_dout, HX711_sck);

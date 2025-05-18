@@ -25,11 +25,8 @@ void sendData(const char* message) {
     if (deviceConnected) {
         pTxCharacteristic->setValue(message);
         pTxCharacteristic->notify();
-        Serial.println("*********");
-        Serial.print("Send Value: ");
+        Serial.print("Send Value Bluetooth: ");
         Serial.println(message);
-        Serial.println("*********");
-        Serial.println("Terkirim");
     }
     else {
       Serial.println("Tidak terhubung");

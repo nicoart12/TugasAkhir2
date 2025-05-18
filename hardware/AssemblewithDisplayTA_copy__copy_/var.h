@@ -73,19 +73,44 @@ extern bool srinseFlag;
 extern bool frinseFlag;
 extern bool receiveFlag; 
 
+
+
+extern bool errorNameFlag;
+extern bool errorSetpointFlag;
+extern bool errorVolumeFlag;
+extern bool errorPouringFlag;
+extern bool errorIntervalFlag;
+
+
+//untuk update_temp
+extern uint32_t time_read_temp;
+extern int currentIndex;
+#define numReadings 20
+extern float temp_avg;
+extern float temp_raw[numReadings];
+
+
 extern int totalVolume;
 extern int numSteps;
 
 extern int countwater;
 extern int countbrew;
 extern int countwait;
+extern int countStep;
 
-extern double Setpoint, NilaiSuhu, Output;
+extern int blockvolume;
+
+extern double Setpoint;
+extern double NilaiSuhu;
 
 extern String namaResep; 
 extern int pouringVolumes[10];
 extern int pouringDurations[10];
 extern int pouringIntervals[10];
+
+//UNTUK CONTROL MOTOR
+extern bool lessSpeed;
+extern int pourIntervalLess;
 
 extern bool parsing;
 extern bool parsingFlag;
@@ -116,13 +141,9 @@ extern int previousheatingmillis;
 extern int currentheatingmillis;
 extern int total_time;
 
-extern double Kp, Ki, Kd;
-
 extern dimmerLamp dimmer;
 
 extern MAX6675 thermocouple;
-
-extern PID myPID;
 
 extern HX711_ADC LoadCell;
 

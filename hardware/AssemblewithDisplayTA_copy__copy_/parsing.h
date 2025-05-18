@@ -3,7 +3,62 @@
 
 #include "var.h"
 
-void parsingRecipe(String dtClean[], int c);
+void parsingRecipe(String dtClean[], int c) {
+    for (int k = 1; k <= c - 1; k++) { //mulai dari 1 karena 0 sebagai header
+        //NAMA RESEP
+        if (k == 1) {
+            namaResep = dtClean[1];
+            if (namaResep.isEmpty()){
+              errorNameFlag = true;
+              Serial.print("NAMA SALAH ");
+            }
+            else {
+              errorNameFlag = false;
+            }
+        } 
+        //SETPOINT
+        else if (k == 2) {
+            Setpoint = dtClean[2].toDouble();
+            
+            if ((Setpoint > 95) || (Setpoint < 80)) {
+              errorSetpointFlag = true;
+              Serial.print("Setpoint SALAH ");
+            }
+            else {
+              errorSetpointFlag = false;
+            }
+            Serial.print("Setpoint: ");
+            Serial.println(Setpoint);
+        } 
+        //VOLUME
+        else if ((k == 3) || (k == 6) || (k == 9) || (k == 12) || (k == 15)) {
+            pouringVolumes[countwater] = dtClean[k].toInt();
+            Serial.print("Volume : ");
+            Serial.println(dtClean[k].toInt());
+            //if ((pouringVolumes[countwater]<30) nanti yaaaa
+            totalVolume += pouringVolumes[countwater];
+            countwater++;
+        } else if ((k == 4) || (k == 7) || (k == 10) || (k == 13) || (k == 16)) {
+            pouringDurations[countbrew] = dtClean[k].toInt();
+            Serial.print("Duration: ");
+            Serial.println(dtClean[k].toInt());
+            total_time += pouringDurations[countbrew];
+            countbrew++;
+        } else if ((k == 5) || (k == 8) || (k == 11) || (k == 14) || (k == 17)) {
+            pouringIntervals[countwait] = dtClean[k].toInt();
+            Serial.print("Interval: ");
+            Serial.println(dtClean[k].toInt());
+            total_time += pouringIntervals[countwait];
+            countwait++;
+            parsingFlag = true;
+            Serial.print("parsingFlag: ");
+            Serial.println(parsingFlag);
+        }
+    }
+    countwait = countwait - 1; //mengurangi satu karena diujung ada penambahan. 
+    countbrew = countbrew - 1;
+    countwater = countwater - 1;
+}
 
 void parsingData(String dataIn) {
     int j = 0;
@@ -34,48 +89,29 @@ void parsingData(String dataIn) {
             c++;
         }
     }
-
+    //PENGIRIMAN RESEP
     if (dtClean[0] == "send") {
         parsingRecipe(dtClean, c);
-    } else if (dtClean[0] == "srinse") {
-        if (dtClean[1] == "1") {
+    }
+    //MEMULAI RINSE
+    else if (dtClean[0] == "srinse") {
+      srinseFlag = true;
+      Serial.print(dtClean[0]);
+      Serial.print(dtClean[1]);
+        if (String(dtClean[1]) == String(1)) {
             srinseFlag = true;
         } else {
             Serial.print("TIDAK ADA RINSE, RINSE DULU YA");
         }
-    } else if (dtClean[0] == "tare") {
-        if (dtClean[1] == "1") {
+    }
+    //MEMULAI TARE
+    else if (dtClean[0] == "tare") {
+      tareFlag = true;
+        if (String(dtClean[1]) == String(1)) {
             tareFlag = true;
         } else {
             Serial.print("TIDAK ADA TARE, BUANG DULU YA");
         }
     }
 }
-
-void parsingRecipe(String dtClean[], int c) {
-    for (int k = 1; k <= c - 1; k++) { //mulai dari 1 karena 0 sebagai header
-        if (k == 1) {
-            namaResep = dtClean[0];
-        } else if (k == 2) {
-            Setpoint = dtClean[1].toDouble();
-        } else if ((k == 3) || (k == 6) || (k == 9) || (k == 12) || (k == 15)) {
-            pouringVolumes[countwater] = dtClean[k].toInt();
-            totalVolume += pouringVolumes[countwater];
-            countwater++;
-        } else if ((k == 4) || (k == 7) || (k == 10) || (k == 13) || (k == 16)) {
-            pouringDurations[countbrew] = dtClean[k].toInt();
-            total_time += pouringDurations[countbrew];
-            countbrew++;
-        } else if ((k == 5) || (k == 8) || (k == 11) || (k == 14) || (k == 17)) {
-            pouringIntervals[countwait] = dtClean[k].toInt();
-            total_time += pouringIntervals[countwait];
-            countwait++;
-            parsingFlag = true;
-            Serial.print("parsingFlag: ");
-            Serial.println(parsingFlag);
-        }
-    }
-    countwait = countwait - 1;
-}
-
 #endif

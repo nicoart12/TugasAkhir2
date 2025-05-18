@@ -1,99 +1,27 @@
 #include "input.h"
 #include "var.h"
 #include "heating.h"
-// #include "display.h"
-// #include "bluetooth"
 #include <iostream>
 #include <sstream>
 #include <vector>
 
+//BUAT CARA UNTUK KIRIM DATA PENYEDUHAN PAKE HEADER YANG KEMAREN (udah)
+//BUAT UNTUK MENYATAKAN PENYEDUHAN SELESAI (udah)
+//BUAT MODE UNTUK MENYATAKAN PENGGUNA NGATUR PAKE APLIKASI ATAU KONTROLLER 
+//BUAT ALGORITAM UNTUK DINGININ AIR LEWAT MOTOR 1 menyala (gausah, takutnya nanti air membludak)
+//COBA BUAT SEMISALNYA MOTOR 1 PUNYA KECEPATAN MINIMAL 70 PWM, nah nanti selama interval disesuaikan aja =- waternya pake pwm 70, gausah maksain dari waktu interval (tambah kondisional di control motor) (sudah)
+
+//nanti dihapus (cari ini dan hapus line)
+// ganti fill water jadi 25s
+
+
+//tugas
+//buat pengiriman untuk saat interval juga 
+//pastiin kalau time remaining itu bener
+//buat flag untuk masing masibg parsing
 using namespace std;
 
-void pouring(int volwater, int pourDuration, int pourInterval) {
-  Serial.println("hanya pour"); //nanti dihapus
-  //delay(1000);
-  updateLoadCell();
-  Serial.println("mulai pouring"); //nanti dihapus
-  //delay(1000);
-  int previousStartTime = 0;
-  int currentStartTime = millis();
-  while (average < volwater){
-      controlMotor(volwater, pourDuration, motor2Pin);
-      controlMotor3(255, motor3Pin); // PWM 0(off) atau 255(on)
-      Serial.println("motor menyala"); //nanti dihapus
-      //delay(1000);
-      //average = volwater + 1;//nanti dihapus
-  }
-
-  updateLoadCell();
-  if ((average == volwater) && (currentStartTime - stepStartTime) <= (pourDuration*1000)) {
-    previousStartTime = currentStartTime;
-    controlMotor3(0, motor2Pin); // PWM 0(off) atau 255(on)
-    controlMotor3(0, motor3Pin); // PWM 0(off) atau 255(on)
-    Serial.println("sedang mematikan motor"); //nanti dihapus
-    //delay(1000);
-    Serial.print("udah berhenti");
-    Serial.println('\n');
-    updateLoadCell();
-    Serial.printf("total water weight: %.2f", average);
-    Serial.println('\n');
-    //SEND DATA KE DISPLAY KALAU SUDAH SELESAI 1 STEP
-    digitalWrite(Enable, HIGH);
-    SerialPort.print(slave_1_id);
-    SerialPort.print("SELESAI");
-    Serial.println("terkirim");
-    SerialPort.flush();
-    digitalWrite(Enable, LOW);
-    delay(pourInterval * 1000);
-  }
-}
-
-void pouringandHeat(int volwater, int pourDuration, int pourInterval, int Setpoint) {
-  Serial.println("pour and heating"); //nanti dihapus
-  //delay(1000);
-  updateLoadCell();
-    while (average <= volwater){
-      controlMotor(volwater, pourDuration, motor2Pin);
-      controlMotor3(255, motor3Pin); // PWM 0(off) atau 255(on)
-      Serial.println("sedang menyalakan motor"); //nanti dihapus
-      //delay(1000); // nanti dihapus
-      //average = volwater + 1; // nanti dihapus
-      updateLoadCell();
-  }
-  //   if ((millis() - stepStartTime >= pourDuration * 1000)) 
-  // { // coba untuk baca data load cell ya
-  updateLoadCell();
-  if (average >= volwater) {
-    Serial.println("sedang mematikan motor"); //nanti dihapus
-    //delay(1000);
-    controlMotor3(0, motor2Pin); // PWM 0(off) atau 255(on)
-    controlMotor3(0, motor3Pin); // PWM 0(off) atau 255(on)
-    Serial.print("udah berhenti");
-    Serial.println('\n');
-    updateLoadCell();
-    Serial.printf("total water weight: %.2f", average);
-    Serial.println('\n');
-    //SEND DATA KE DISPLAY KALAU SUDAH SELESAI 1 STEP
-    digitalWrite(Enable, HIGH);
-    Serial.println("sedang mengirim data ke display"); //nanti dihapus
-    //delay(1000);
-    SerialPort.print(slave_1_id);
-    SerialPort.print("SELESAI");
-    //Serial.println("terkirim");
-    SerialPort.flush();
-    digitalWrite(Enable, LOW);
-    //controlMotor(0, motorPin);
-    //Memanaskan air pada saat pour interval
-    currentheatingmillis = millis();
-    if (currentheatingmillis - previousheatingmillis <= (pourInterval * 1000)) {
-      heating(Setpoint);
-    }
-    else {
-      previousheatingmillis = currentheatingmillis;
-    }
-  }
-}
-
+// yang ini
 void setup()
 {
   Serial.begin(115200);
@@ -131,10 +59,8 @@ void setup()
 
   dimmer.begin(NORMAL_MODE, ON);
   dimmer.setPower(0);
-  myPID.SetMode(AUTOMATIC);
-  myPID.SetOutputLimits(0, 50);
   LoadCell.begin();
-  float calibrationValue = 422.29;
+  float calibrationValue = 363.53;
   unsigned long stabilizingtime = 2000;
   bool _tare = true;
   LoadCell.start(stabilizingtime, _tare);
@@ -177,6 +103,7 @@ void loop()
       sendDataD("connect,1");
     }
     else {
+      sendDataD("connect,0");
       Serial.println("Tidak konek");
     }
     askForInputs();
@@ -186,55 +113,64 @@ void loop()
 
   case RINSE: //asumsi rinse itu 70 C dan 50 mL
   {
-    srinseFlag = false;
-    //frinseFlag = false; KAYANYA GAPERLU DEH
-    askForInputs2();
-        unsigned long startTimeMotor = millis();  // Catat waktu mulai
-    while (millis() - startTimeMotor < 10000) { // waktu 10s 
-        controlMotor3(220, motorPin);  // Jalankan motor
+    unsigned long startTimeMotor = millis();  // Catat waktu mulai
+    // FILL WATER
+    Serial.println("MEMULAI FILL WATER");
+    while (millis() - startTimeMotor < 2000) { // waktu 2s 
+        controlMotor3(100, motorPin);  // Jalankan motor
     }
     controlMotor3(0, motorPin); // matikan motor
-    //controlMotor3(220, motorPin); //PIKIRKAN BERAPA DURASI UNTUK MENYALAKAN MOTOR 1
-    if (inputFlag) {
-          if (srinseFlag){
-            pouringandHeat(100, 20, 3, 70); // Volume rinse 100mL , selama 20 detik, dan interval 3 detik, dilakukan dalam suhu 70 derajat C
-            sendDataD("frinse");
-            sendData("frinse");
-            //digitalWrite(Enable, LOW);
-
-          askForInputs2();
-          if (inputFlag){
-            if (tareFlag) {
-              LoadCell.start(1000, true);
-              // TARE UNTUK LOADCELL
-              currentState = POURING;
+    Serial.println("SELESAI FILL WATER");
+    Serial.println("Memulai RINSE");
+    srinseFlag = false;
+    askForInputs2();
+    if (srinseFlag){ 
+        Serial.println("MULAI RINSE");
+        heating(70);
+        rinse(50, 5, 3); // Volume rinse 50mL , selama 5 detik, dan interval 3 detik, dilakukan dalam suhu 70 derajat C
+        // rinse dibuat fungsi tersendiri karena akan ada clash saat pengiriman data, dalam fungsi pouring sudah ada pengiriman data, sedangkan rinse tidak akan megirim data kecuali sudah selesai
+        Serial.println("Selesai RINSE");
+        delay(200);
+        sendDataD("frinse");
+        sendData("frinse");
+      //MEMINTA INPUT UNTUK RESEP
+    askForInputs2();
+        if (tareFlag) { 
+          Serial.println("Sedang tare");
+          LoadCell.start(1000, true);
+          // TARE UNTUK LOADCELL
+          currentState = POURING;
+        }
+        else {
+          Serial.println("MULAI TARE DULU");
+        }
       }
-      else {
-        Serial.println("MULAI TARE DULU");
-      }
-    }
-    }
-    }
- else {
+    else {
       Serial.println("MULAI RINSE DULU");
     }
 
   }
   case POURING:
+  //misalnya haisl tampungan dikurang sama hasil yang dikeluarin dibawah 50, maka akan ada waktu tambahan untuk mengisi air.
+  //case 1: setiap sebelum mulai pemanasan di step berikutnya, air harus penuh (pakai yang ini)
+  //case 2: harus hitung di setiap kali mau pemanasan
   {
     Serial.println("Mulai pouring");
-    controlMotor3(220, motorPin); // PWM 0 - 255
-    if ((totalVolume >= 250)) {
-      heating(Setpoint);
-      for (int i = 0; i <= countwait ; i++) {
-        pouringandHeat(pouringVolumes[i],pouringDurations[i],pouringIntervals[i], Setpoint);
+    blockvolume = 220;
+    Serial.print("Total Volume : ");
+    Serial.print(totalVolume);
+    Serial.println(" mL");
+    if (totalVolume >= blockvolume) {
+      for (countStep; countStep <= countwait ; countStep++) {
+        heating(Setpoint);
+        pouringandHeat(pouringVolumes[countStep],pouringDurations[countStep],pouringIntervals[countStep]);
       }
       currentState = COMPLETED;
     }
     else {
-      heating(Setpoint);
-      for (int i = 0; i <= countwait ; i++) {
-        pouring(pouringVolumes[i], pouringDurations[i],pouringIntervals[i]);
+      heating(Setpoint);  //SEKALI MEMANASKAN SAJA
+      for (countStep; countStep <= countwait ; countStep++) {
+        pouring(pouringVolumes[countStep], pouringDurations[countStep],pouringIntervals[countStep]);
       }
       currentState = COMPLETED;
     }
@@ -243,8 +179,11 @@ void loop()
   case COMPLETED:
   {
     Serial.println("sudah selesai"); //nanti dihapus
+    sendData("finish");
+    sendDataD("finish");
     delay(1000);
     dimmer.setPower(0);
+    countStep = 0;
     Serial.println("PROCESS COMPLETED");
     Serial.printf("Final temperature: %.2f", NilaiSuhu);
     Serial.println('\n');
