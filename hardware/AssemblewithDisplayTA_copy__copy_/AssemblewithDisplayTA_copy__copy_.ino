@@ -19,13 +19,16 @@
 //buat pengiriman untuk saat interval juga 
 //pastiin kalau time remaining itu bener
 //buat flag untuk masing masibg parsing
+//remaining time pake millis
+
+//pikirkan kalau terjadi diskoneksi di pertengahan gimana, alternatif biar gampang: kalau keputus, data masih bisa dipake di display.
 using namespace std;
 
 // yang ini
 void setup()
 {
   Serial.begin(115200);
-    BLEDevice::init("BLE_ESP32_01");
+    BLEDevice::init("BLE_Pourfect60");
     pServer = BLEDevice::createServer();
     pServer->setCallbacks(new MyServerCallbacks());
 
@@ -60,7 +63,7 @@ void setup()
   dimmer.begin(NORMAL_MODE, ON);
   dimmer.setPower(0);
   LoadCell.begin();
-  float calibrationValue = 363.53;
+  float calibrationValue = 357.91;
   unsigned long stabilizingtime = 2000;
   bool _tare = true;
   LoadCell.start(stabilizingtime, _tare);
@@ -117,22 +120,23 @@ void loop()
     // FILL WATER
     Serial.println("MEMULAI FILL WATER");
     while (millis() - startTimeMotor < 2000) { // waktu 2s 
-        controlMotor3(100, motorPin);  // Jalankan motor
+        controlMotor3(100, motorPin);  // Jalankan motor 1
     }
-    controlMotor3(0, motorPin); // matikan motor
+    controlMotor3(0, motorPin); // matikan motor 1
     Serial.println("SELESAI FILL WATER");
     Serial.println("Memulai RINSE");
     srinseFlag = false;
     askForInputs2();
     if (srinseFlag){ 
         Serial.println("MULAI RINSE");
-        heating(70);
+        sendData("srinse");
+        heating_rinse(70);   
         rinse(50, 5, 3); // Volume rinse 50mL , selama 5 detik, dan interval 3 detik, dilakukan dalam suhu 70 derajat C
         // rinse dibuat fungsi tersendiri karena akan ada clash saat pengiriman data, dalam fungsi pouring sudah ada pengiriman data, sedangkan rinse tidak akan megirim data kecuali sudah selesai
         Serial.println("Selesai RINSE");
         delay(200);
         sendDataD("frinse");
-        sendData("frinse");
+        sendData("frinse,1");
       //MEMINTA INPUT UNTUK RESEP
     askForInputs2();
         if (tareFlag) { 
@@ -179,6 +183,7 @@ void loop()
   case COMPLETED:
   {
     Serial.println("sudah selesai"); //nanti dihapus
+    Serial.printf("banyak step: %d", countwait);
     sendData("finish");
     sendDataD("finish");
     delay(1000);

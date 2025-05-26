@@ -50,7 +50,7 @@ void askForInputs() {
           if (parsing == true && (not gaada))
           {
             parsingData(dataIn);
-            Serial.println("input sudah masuk3"); //nanti dihapus
+            Serial.println("input sudah masuk display"); //nanti dihapus
             delay(1000);
             parsing=false;
             if (parsingFlag) {

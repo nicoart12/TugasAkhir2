@@ -30,7 +30,6 @@ void sendData(const char* message) {
     }
     else {
       Serial.println("Tidak terhubung");
-      delay(1000);
     }
 }
 

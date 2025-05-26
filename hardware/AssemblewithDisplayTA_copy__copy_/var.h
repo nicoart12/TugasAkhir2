@@ -64,6 +64,7 @@ extern ProgramState currentState;
 extern String dataIn;
 extern String dataInBLE;
 extern String dataReceive;
+extern String message;
 
 extern bool dataSendBLE;
 extern bool dataSendD;

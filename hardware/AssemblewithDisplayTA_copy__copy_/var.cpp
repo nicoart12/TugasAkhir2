@@ -18,6 +18,7 @@ ProgramState currentState = WAITING_FOR_INPUT;
 String dataIn;
 String dataInBLE;
 String dataReceive;
+String message;
 
 bool dataSendBLE;
 bool dataSendD;
